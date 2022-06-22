@@ -224,29 +224,86 @@ takeUtil f (x:xs) | f x == False = x:takeUtil f (xs)
                   | otherwise = []
 
 -- Ejercicio 3 cp 2.2
-data PeopleName = PeopleName (String,String,String)
+-- data PeopleName = PeopleName (String,String,String)
 
-data People = People PeopleName Int
+data People = People 
+  {
+    name :: String,
+    firstLastName :: String,
+    secondLastName :: String,
+    age :: Int
+  } deriving(Show,Eq)
 
-liaZer :: People
-liaZer = People (PeopleName "Lia"  "Zerquera" "Ferrer") 21
-
-danielaZer :: People
-danielaZer = People (PeopleName "Daniela" "Ferrer" "Ferrer") 18
-
-lauHer :: People 
-lauHer = People (PeopleName "Laurent" "Hernandez" "Ferrer") 15
-
-getName :: People -> (String,String)
-getName (People n _) = n
-
-
-ifLastName :: (String , String,String) -> (String,String)
-ifLastName (n ,f, s) | f == s = True
-                   | otherwise = False
-
+-- getName :: People -> String
+-- getName People n _ _ _ = n
 
 aps_same :: [People] -> [People]
 aps_same [] = []
-aps_same (x:xs) | ifLastName x =  x : aps_same xs
+aps_same (x:xs) | firstLastName x == secondLastName x  = x: aps_same xs
                 | otherwise = aps_same xs
+
+tienen_ap :: [People] -> String -> [People]
+tienen_ap [] _ = []
+tienen_ap (x:xs) a | firstLastName x == a || secondLastName x == a = x: tienen_ap xs a
+                   | otherwise = tienen_ap xs a
+
+nino:: [People] -> [People]
+nino [] = []
+nino (x:xs) | age x < 11 = x:nino xs
+            | otherwise = nino xs
+
+adolecente :: [People] -> [People]
+adolecente [] = []
+adolecente (x:xs) | age x > 11 && age x < 17 = x:adolecente xs
+                  | otherwise = adolecente xs
+
+adulto :: [People] -> [People]
+adulto [] = []
+adulto (x:xs) | age x >= 17 = x:adolecente xs
+                  | otherwise = adolecente xs
+
+-- Cp3 ej1
+
+data ABB = ABB {valor :: Int,
+                hi:: ABB,
+                hd:: ABB} | Nil deriving(Show,Eq)
+
+minimo :: ABB -> Int
+minimo (ABB x hi hd)  | hi == Nil = x
+                      | otherwise = minimo hi
+
+pertenece :: ABB -> Int -> Bool
+pertenece Nil _ = False
+pertenece tree a | valor tree ==a = True
+                 | otherwise = pertenece( hi tree) a || pertenece(hd tree) a
+
+
+sucesor :: ABB -> Int -> Int
+sucesor (ABB v Nil Nil) a  = if v > a then a else -1
+sucesor (ABB v i d) a | v > a && valor i < a && hi i == Nil = v
+                        | v < a && valor d > a && hd d == Nil = valor i
+sucesor tree a  | valor tree == a = sucesor (hd tree) a 
+                | valor tree > a = sucesor (hi tree) a
+                | otherwise = sucesor (hd tree) a 
+
+estaBalanceado:: ABB -> Bool
+estaBalanceado (ABB v Nil Nil) = True
+estaBalanceado tree | hi tree == Nil && altura (hd tree) <= 2 = True
+                    | hd tree == Nil && altura (hi tree) <=2 = True
+                    | estaBalanceado (hi tree) && estaBalanceado (hd tree) && abs (altura (hi tree) - altura (hd tree)) < 2 = True
+                    | otherwise = False
+
+altura:: ABB -> Int
+altura Nil = 0
+altura tree = (max (altura (hi tree)) (altura (hd tree))) + 1
+
+
+insertar:: ABB ->Int -> ABB
+insertar tree b | valor tree >b = update (ABB b Nil tree)
+                | otherwise = update (ABB b  tree  Nil)
+
+update :: ABB ->ABB
+update tree | hi tree == Nil && hd tree == Nil = tree
+            | valor (hi tree) < valor tree && valor (hd tree) > valor tree = tree
+            | valor (hi tree) < valor tree = update (ABB (valor tree) (hi (hi tree)) (hd (hi tree)))
+            | valor (hd tree) > valor tree = update (ABB (valor tree) (hi (hd tree)) (hd (hd tree)))
