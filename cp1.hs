@@ -307,3 +307,66 @@ update tree | hi tree == Nil && hd tree == Nil = tree
             | valor (hi tree) < valor tree && valor (hd tree) > valor tree = tree
             | valor (hi tree) < valor tree = update (ABB (valor tree) (hi (hi tree)) (hd (hi tree)))
             | valor (hd tree) > valor tree = update (ABB (valor tree) (hi (hd tree)) (hd (hd tree)))
+
+-- Cp 3 ej 2 
+data Seq a = Nul| Unit a| Cat (Seq a) (Seq a)
+
+appSeq:: Seq a -> Seq a -> Seq a
+appSeq seq1 seq2 = Cat (seq1) (seq2)
+
+
+consSeq:: Seq a -> a -> Seq a
+consSeq seq a = Cat (Unit a) seq
+
+-- lenSeq :: Seq a -> Int
+-- lenSeq 
+
+-- Ej 3 Cp3 
+data Bag a = Void| Elem(a,Int) (Bag a) deriving(Show)
+
+-- lista2bag :: [a] -> Bag a
+lista2bag [] = Void
+lista2bag (x:xs) = (Elem(x ,(count (x:xs) x)) lista2bag xs)
+
+count :: Eq a => [a]-> a -> Int
+count [] _ = 0
+count (x:xs) a | x == a = 1 + count xs a
+               | otherwise =  count xs a
+
+bagEmpty:: Bag a -> Bool
+bagEmpty bag = bag == Void
+
+bagCount:: Bag a -> [Int]
+bagCount Void  = []
+bagCount (Elem (a,n) rb) = n: bagCount rb
+
+bagElement:: Eq a => Bag a -> a -> Bool 
+bagElement Void _ = False
+bagElement (Elem (a,n) rb) b | a==b True
+                             | otherwise = bagElement rb b
+
+bagSubag :: Bag a -> Bag a -> Bool
+bagSubag _ bag = True
+bagSubag bag _ = False
+bagSubag (Elem (a,n) ra) (Elem (b,n) rb) | (bagElement (Elem (b,n) rb) a) && (bagCount (Elem (a,n) ra) a) == (bagCount (Elem (b,n) rb) a) = bagSubag ra (Elem (b,n) rb)
+                                         | otherwise = False 
+
+bagEqual:: Bag a -> Bag a -> Bool
+bagEqual bag1 bag2 = bagSubag bag1 bag2 && bagSubag bag2 bag1
+
+bagInter:: Bag a -> Bag a -> Bag a
+bagInter (Elem (a,n) ra) (Elem (b,n) rb) 
+       | bagElement (Elem (b,n) rb) a = (Elem (a,(min bagCount((Elem (a,n) ra) a) (Elem (b,n) rb) a)) bagInter ra (Elem (b,n) rb) ) 
+
+
+bagSum:: Bag a -> Bag a -> Bag a
+bagSum (Elem (a,n) ra) (Elem (b,n) rb) 
+      | bagElement (Elem (b,n) rb) a = (Elem (a,(max bagCount((Elem (a,n) ra) a) (Elem (b,n) rb) a)) bagInter ra (Elem (b,n) rb) ) 
+
+
+bagInsert:: Bag a -> a -> Bag a
+bagInsert bag a = (Elem (a,1) bag )
+
+bagDelete:: Bag a -> a -> Bag a
+bagDelete bag a | bagElement bag a = (Elem (a,bagCount bag a) bag)
+                | otherwise = (Elem(a,1) bag)
